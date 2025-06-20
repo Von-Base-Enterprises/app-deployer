@@ -4,6 +4,7 @@ class AppDeployer {
         this.apiUrl = 'https://landing-page-api-bgf8.onrender.com';
         this.dropZone = document.getElementById('dropZone');
         this.fileInput = document.getElementById('fileInput');
+        this.folderInput = document.getElementById('folderInput');
         this.progressContainer = document.getElementById('progressContainer');
         this.progressFill = document.getElementById('progressFill');
         this.progressText = document.getElementById('progressText');
@@ -29,13 +30,12 @@ class AppDeployer {
         this.dropZone.addEventListener('dragleave', this.handleDragLeave.bind(this));
         this.dropZone.addEventListener('drop', this.handleDrop.bind(this));
         
-        // Click to browse
-        this.dropZone.addEventListener('click', () => {
-            this.fileInput.click();
+        // File input changes
+        this.fileInput.addEventListener('change', (e) => {
+            this.handleFiles(e.target.files);
         });
         
-        // File input change
-        this.fileInput.addEventListener('change', (e) => {
+        this.folderInput.addEventListener('change', (e) => {
             this.handleFiles(e.target.files);
         });
         
@@ -114,7 +114,12 @@ class AppDeployer {
         // Process each file
         for (let i = 0; i < fileArray.length; i++) {
             const file = fileArray[i];
-            const fileName = file.name;
+            let fileName = file.name;
+            
+            // Handle file paths from folders (webkitRelativePath)
+            if (file.webkitRelativePath) {
+                fileName = file.webkitRelativePath;
+            }
             
             this.updateProgress(30 + (i / fileArray.length) * 40, `Processing ${fileName}...`);
             
@@ -122,7 +127,8 @@ class AppDeployer {
                 if (fileName.toLowerCase().endsWith('.png') || 
                     fileName.toLowerCase().endsWith('.jpg') || 
                     fileName.toLowerCase().endsWith('.jpeg') ||
-                    fileName.toLowerCase().endsWith('.gif')) {
+                    fileName.toLowerCase().endsWith('.gif') ||
+                    fileName.toLowerCase().endsWith('.svg')) {
                     // Handle image files as base64
                     processedFiles[fileName] = await this.readFileAsDataURL(file);
                 } else {
@@ -313,8 +319,9 @@ class AppDeployer {
         dropText.textContent = 'Drop your app files here';
         dropSubtext.textContent = 'or click to browse';
         
-        // Reset file input
+        // Reset file inputs
         this.fileInput.value = '';
+        this.folderInput.value = '';
         
         // Reset progress
         this.progressFill.style.width = '0%';
@@ -327,6 +334,14 @@ class AppDeployer {
 }
 
 // Global functions for button events
+function selectFiles() {
+    document.getElementById('fileInput').click();
+}
+
+function selectFolder() {
+    document.getElementById('folderInput').click();
+}
+
 function copyUrl() {
     const appDeployer = window.appDeployer;
     if (!appDeployer || !appDeployer.currentUrl) return;

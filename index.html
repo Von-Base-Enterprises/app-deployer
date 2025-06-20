@@ -301,15 +301,15 @@
             <div class="drop-zone" id="dropZone">
                 <div class="drop-icon">📁</div>
                 <div class="drop-text">Drop your app files here</div>
-                <div class="drop-subtext">or click to browse</div>
+                <div class="drop-subtext">or click to select files/folders</div>
                 
                 <div class="file-types">
-                    <span class="file-type">HTML</span>
-                    <span class="file-type">ZIP</span>
-                    <span class="file-type">Folders</span>
+                    <button onclick="selectFiles()" class="file-type" style="cursor: pointer; border: none; background: #f5f5f5;">📄 Select Files</button>
+                    <button onclick="selectFolder()" class="file-type" style="cursor: pointer; border: none; background: #f5f5f5;">📁 Select Folder</button>
                 </div>
 
-                <input type="file" id="fileInput" multiple accept=".html,.htm,.zip" style="display: none;">
+                <input type="file" id="fileInput" multiple accept=".html,.htm,.css,.js,.json,.png,.jpg,.jpeg,.gif,.svg" style="display: none;">
+                <input type="file" id="folderInput" multiple webkitdirectory style="display: none;">
             </div>
 
             <!-- Processing State -->
