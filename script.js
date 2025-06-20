@@ -87,8 +87,8 @@ class AppDeployer {
             // Process files and extract content
             const appData = await this.processFiles(files);
             
-            // Create landing page via API
-            const result = await this.createLandingPage(appData);
+            // Deploy full app via API
+            const result = await this.deployApp(appData);
             
             // Show success
             this.showSuccess(result.url);
@@ -103,64 +103,62 @@ class AppDeployer {
         this.updateProgress(10, 'Analyzing files...');
         
         let title = 'My App';
-        let description = 'Deployed via App Deployer';
-        let content = '';
+        let mainFile = 'index.html';
+        const processedFiles = {};
         
         // Convert FileList to Array
         const fileArray = Array.from(files);
         
-        // Look for HTML files first
-        const htmlFiles = fileArray.filter(file => 
-            file.name.toLowerCase().endsWith('.html') || 
-            file.name.toLowerCase().endsWith('.htm')
-        );
-        
-        // Look for ZIP files
-        const zipFiles = fileArray.filter(file => 
-            file.name.toLowerCase().endsWith('.zip')
-        );
-        
         this.updateProgress(30, 'Processing content...');
         
-        if (htmlFiles.length > 0) {
-            // Process HTML files
-            const htmlFile = htmlFiles.find(f => 
-                f.name.toLowerCase().includes('index') || 
-                f.name.toLowerCase().includes('main')
-            ) || htmlFiles[0];
+        // Process each file
+        for (let i = 0; i < fileArray.length; i++) {
+            const file = fileArray[i];
+            const fileName = file.name;
             
-            const htmlContent = await this.readFileAsText(htmlFile);
-            const extracted = this.extractHTMLMetadata(htmlContent);
+            this.updateProgress(30 + (i / fileArray.length) * 40, `Processing ${fileName}...`);
             
-            title = extracted.title || this.getFileNameWithoutExtension(htmlFile.name);
-            description = extracted.description || `HTML application: ${title}`;
-            
-        } else if (zipFiles.length > 0) {
-            // Process ZIP files
-            const zipFile = zipFiles[0];
-            title = this.getFileNameWithoutExtension(zipFile.name);
-            description = `ZIP application: ${title}`;
-            
-            // Note: For full ZIP processing, we'd need a library like JSZip
-            // For now, we'll create a landing page that mentions it's a ZIP app
-            
-        } else if (fileArray.length > 0) {
-            // Process other files
-            const firstFile = fileArray[0];
-            title = this.getFileNameWithoutExtension(firstFile.name);
-            description = `Application: ${title}`;
+            try {
+                if (fileName.toLowerCase().endsWith('.png') || 
+                    fileName.toLowerCase().endsWith('.jpg') || 
+                    fileName.toLowerCase().endsWith('.jpeg') ||
+                    fileName.toLowerCase().endsWith('.gif')) {
+                    // Handle image files as base64
+                    processedFiles[fileName] = await this.readFileAsDataURL(file);
+                } else {
+                    // Handle text files
+                    processedFiles[fileName] = await this.readFileAsText(file);
+                }
+                
+                // Extract title from HTML files
+                if (fileName.toLowerCase().endsWith('.html')) {
+                    const extracted = this.extractHTMLMetadata(processedFiles[fileName]);
+                    if (extracted.title) {
+                        title = extracted.title;
+                    }
+                    
+                    // Set main file (prefer index.html)
+                    if (fileName.toLowerCase().includes('index') || mainFile === 'index.html') {
+                        mainFile = fileName;
+                    }
+                }
+            } catch (error) {
+                console.warn(`Failed to process file ${fileName}:`, error);
+                // Continue with other files
+            }
         }
         
-        this.updateProgress(60, 'Preparing deployment...');
+        // If no HTML files, use first file as main
+        if (!Object.keys(processedFiles).some(name => name.toLowerCase().endsWith('.html'))) {
+            mainFile = fileArray[0]?.name || 'index.html';
+        }
+        
+        this.updateProgress(80, 'Preparing deployment...');
         
         return {
-            title: title.substring(0, 50), // Limit title length
-            subtitle: 'Deployed Application',
-            description: description.substring(0, 200), // Limit description length
-            ctaText: 'View Source Files',
-            ctaUrl: '#',
-            accentColor: '#667eea',
-            template: 'default'
+            title: title.substring(0, 50),
+            files: processedFiles,
+            mainFile: mainFile
         };
     }
 
@@ -170,6 +168,15 @@ class AppDeployer {
             reader.onload = e => resolve(e.target.result);
             reader.onerror = e => reject(new Error('Failed to read file'));
             reader.readAsText(file);
+        });
+    }
+
+    async readFileAsDataURL(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = e => resolve(e.target.result);
+            reader.onerror = e => reject(new Error('Failed to read file'));
+            reader.readAsDataURL(file);
         });
     }
 
@@ -192,10 +199,10 @@ class AppDeployer {
         return filename.split('.').slice(0, -1).join('.') || filename;
     }
 
-    async createLandingPage(appData) {
-        this.updateProgress(80, 'Creating live URL...');
+    async deployApp(appData) {
+        this.updateProgress(85, 'Deploying your app...');
         
-        const response = await fetch(`${this.apiUrl}/api/pages`, {
+        const response = await fetch(`${this.apiUrl}/api/apps`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -205,13 +212,13 @@ class AppDeployer {
         
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || `HTTP ${response.status}: Failed to create landing page`);
+            throw new Error(errorData.error || `HTTP ${response.status}: Failed to deploy app`);
         }
         
         const result = await response.json();
         
         if (!result.success) {
-            throw new Error(result.error || 'Failed to create landing page');
+            throw new Error(result.error || 'Failed to deploy app');
         }
         
         this.updateProgress(100, 'Complete!');
