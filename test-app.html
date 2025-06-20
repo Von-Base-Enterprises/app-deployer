@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Application</title>
+    <meta name="description" content="A simple test application to demonstrate the App Deployer functionality">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .container {
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+        }
+        
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .button {
+            background: white;
+            color: #667eea;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .feature {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .emoji {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 Test Application</h1>
+        <p>
+            Congratulations! This is a test application that was successfully deployed using the App Deployer. 
+            You can drag and drop HTML files like this one to get instant live URLs.
+        </p>
+        
+        <button class="button" onclick="alert('This app is working perfectly!')">
+            Click Me to Test!
+        </button>
+        
+        <div class="features">
+            <div class="feature">
+                <span class="emoji">🚀</span>
+                <div>Fast Deploy</div>
+            </div>
+            <div class="feature">
+                <span class="emoji">🌍</span>
+                <div>Global Access</div>
+            </div>
+            <div class="feature">
+                <span class="emoji">📱</span>
+                <div>Mobile Ready</div>
+            </div>
+        </div>
+        
+        <p style="margin-top: 30px; font-size: 0.9rem; opacity: 0.7;">
+            Deployed with ❤️ using App Deployer
+        </p>
+    </div>
+
+    <script>
+        // Add some interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            const button = document.querySelector('.button');
+            const features = document.querySelectorAll('.feature');
+            
+            // Animate features on load
+            features.forEach((feature, index) => {
+                feature.style.opacity = '0';
+                feature.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    feature.style.transition = 'all 0.5s ease';
+                    feature.style.opacity = '1';
+                    feature.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+            
+            // Add click animation
+            button.addEventListener('click', function() {
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = 'translateY(-2px)';
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html>

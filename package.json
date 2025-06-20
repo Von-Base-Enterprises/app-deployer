@@ -1,0 +1,31 @@
+{
+  "name": "app-deployer",
+  "version": "1.0.0",
+  "description": "Drop your app files and get a live URL instantly",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "serve": "python3 -m http.server 8080",
+    "dev": "python3 -m http.server 8080"
+  },
+  "keywords": [
+    "deployment",
+    "drag-drop",
+    "html",
+    "web-app",
+    "landing-page"
+  ],
+  "author": "Von Base Enterprises",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Von-Base-Enterprises/app-deployer"
+  },
+  "homepage": "https://github.com/Von-Base-Enterprises/app-deployer#readme",
+  "files": [
+    "index.html",
+    "script.js",
+    "README.md",
+    "test-app.html"
+  ]
+}

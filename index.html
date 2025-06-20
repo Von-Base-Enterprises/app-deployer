@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Deployer - Drop Your App, Get a Live URL</title>
+    <meta name="description" content="Drop your app files and get a live URL instantly. Deploy HTML, ZIP files, or folders with zero configuration.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header .emoji {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 1rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.8;
+            font-weight: 400;
+        }
+
+        .drop-zone {
+            background: white;
+            border: 3px dashed #ddd;
+            border-radius: 20px;
+            padding: 4rem 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .drop-zone.dragover {
+            border-color: #667eea;
+            background: #f8f9ff;
+            transform: scale(1.02);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
+        }
+
+        .drop-zone.processing {
+            border-color: #ffa726;
+            background: #fff8f0;
+        }
+
+        .drop-zone.success {
+            border-color: #4caf50;
+            background: #f1f8e9;
+        }
+
+        .drop-zone.error {
+            border-color: #f44336;
+            background: #ffebee;
+        }
+
+        .drop-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+
+        .drop-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+
+        .drop-subtext {
+            color: #777;
+            margin-bottom: 1.5rem;
+        }
+
+        .file-types {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .file-type {
+            background: #f5f5f5;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .progress-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 1rem 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .result-container {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .result-url {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            word-break: break-all;
+            position: relative;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .copy-btn.copied {
+            background: #4caf50;
+        }
+
+        .new-btn {
+            background: #764ba2;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .new-btn:hover {
+            background: #6a4190;
+            transform: translateY(-1px);
+        }
+
+        .error-message {
+            color: #f44336;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #ffebee;
+            border-radius: 8px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+        }
+
+        .footer a {
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .header .emoji {
+                font-size: 3rem;
+            }
+
+            .drop-zone {
+                padding: 2rem 1rem;
+                min-height: 250px;
+            }
+
+            .drop-text {
+                font-size: 1.2rem;
+            }
+
+            .file-types {
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <span class="emoji">🚀</span>
+            <h1>App Deployer</h1>
+            <p>Drop your app files and get a live URL instantly</p>
+            <p class="subtitle">Deploy HTML, ZIP files, or folders with zero configuration</p>
+        </header>
+
+        <main>
+            <!-- Drop Zone -->
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-icon">📁</div>
+                <div class="drop-text">Drop your app files here</div>
+                <div class="drop-subtext">or click to browse</div>
+                
+                <div class="file-types">
+                    <span class="file-type">HTML</span>
+                    <span class="file-type">ZIP</span>
+                    <span class="file-type">Folders</span>
+                </div>
+
+                <input type="file" id="fileInput" multiple accept=".html,.htm,.zip" style="display: none;">
+            </div>
+
+            <!-- Processing State -->
+            <div class="progress-container hidden" id="progressContainer">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Processing your files...</div>
+            </div>
+
+            <!-- Results -->
+            <div class="result-container hidden" id="resultContainer">
+                <h2>🎉 Your app is live!</h2>
+                <div class="result-url" id="resultUrl"></div>
+                <button class="copy-btn" id="copyBtn" onclick="copyUrl()">📋 Copy URL</button>
+                <a href="#" id="visitBtn" target="_blank" class="copy-btn">🔗 Visit Site</a>
+                <br>
+                <button class="new-btn" onclick="resetForm()">Create Another App</button>
+            </div>
+
+            <!-- Error State -->
+            <div class="error-message hidden" id="errorMessage"></div>
+        </main>
+
+        <footer class="footer">
+            <p>
+                Powered by <a href="https://github.com/Von-Base-Enterprises/landing-page-api" target="_blank">Landing Page API</a> • 
+                <a href="https://github.com/Von-Base-Enterprises" target="_blank">Von Base Enterprises</a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
